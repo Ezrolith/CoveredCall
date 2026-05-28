@@ -1,0 +1,9 @@
+numpy>=1.26
+pandas>=2.0
+scipy>=1.11
+matplotlib>=3.7
+yfinance>=0.2
+pytest>=7.0
+# optional
+# numba>=0.59
+# streamlit>=1.30
