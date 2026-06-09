@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Address Change Manager</title>
+  <style>
+:root {
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --ink: #1d2733;
+  --muted: #66758a;
+  --line: #e3e8ef;
+  --accent: #2563eb;
+  --accent-soft: #e7eefc;
+  --green: #16a34a;
+  --green-soft: #e6f6ec;
+  --amber: #d97706;
+  --amber-soft: #fdf2e3;
+  --red: #dc2626;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+header {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: #fff;
+  padding: 28px 0;
+}
+.header-inner { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+header h1 { margin: 0; font-size: 1.6rem; }
+.tagline { margin: 4px 0 0; opacity: 0.85; }
+
+main {
+  max-width: 1180px;
+  margin: 24px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 12px; font-size: 1.05rem; }
+
+/* ---- sidebar form ---- */
+label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
+input, textarea, select {
+  width: 100%;
+  margin-top: 3px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.btn {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.btn:hover { background: var(--bg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: #1d4ed8; }
+.btn.danger { color: var(--red); }
+.btn.danger:hover { background: #fdf0f0; }
+
+.save-row { display: flex; align-items: center; gap: 10px; }
+.save-row .btn { width: auto; margin-bottom: 0; }
+.saved-flash { color: var(--green); font-size: 0.85rem; }
+
+/* ---- progress ---- */
+.progress-track {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--line);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #34d399, var(--green));
+  transition: width 0.3s ease;
+}
+.progress-label { margin: 8px 0 0; font-size: 0.85rem; color: var(--muted); }
+.countdown { margin-top: 8px; font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+
+/* ---- toolbar ---- */
+.toolbar { display: flex; gap: 10px; align-items: center; }
+.toolbar input[type="search"] { flex: 1; margin-top: 0; }
+.toolbar select { width: auto; margin-top: 0; }
+.toolbar .btn { width: auto; margin-bottom: 0; white-space: nowrap; }
+
+/* ---- add form ---- */
+.add-form h3 { margin: 0 0 10px; font-size: 0.95rem; }
+.add-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.add-grid input, .add-grid select { margin-top: 0; }
+
+/* ---- checklist ---- */
+.category { margin-bottom: 18px; }
+.category-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 8px 4px;
+}
+.category-header h2 { margin: 0; font-size: 1rem; }
+.category-count { font-size: 0.8rem; color: var(--muted); }
+
+.item {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+}
+.item.done { opacity: 0.62; }
+.item.na { opacity: 0.45; }
+
+.item-main { min-width: 0; }
+.item-title { font-weight: 600; }
+.item.done .item-title { text-decoration: line-through; }
+.item-title a { color: var(--accent); text-decoration: none; font-weight: 500; font-size: 0.85rem; margin-left: 8px; }
+.item-title a:hover { text-decoration: underline; }
+.item-hint { margin: 2px 0 0; font-size: 0.83rem; color: var(--muted); }
+
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-left: 8px;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+.badge.custom { background: var(--amber-soft); color: var(--amber); }
+
+.item-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.status-select {
+  width: auto;
+  margin-top: 0;
+  font-size: 0.82rem;
+  padding: 5px 8px;
+}
+.status-select.todo { border-color: var(--line); }
+.status-select.in_progress { background: var(--amber-soft); border-color: var(--amber); color: var(--amber); }
+.status-select.done { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+.status-select.na { color: var(--muted); }
+
+.item-actions { display: flex; gap: 6px; }
+.mini-btn {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  color: var(--muted);
+}
+.mini-btn:hover { background: var(--bg); color: var(--ink); }
+
+.item-notes {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+.item-notes textarea {
+  margin-top: 0;
+  font-size: 0.83rem;
+  resize: vertical;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 0;
+}
+
+/* ---- toast ---- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  z-index: 10;
+}
+</style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>🏠 Address Change Manager</h1>
+      <p class="tagline">Everything to update when you move — tracked in one place. Standalone version — progress is saved in this browser.</p>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <section class="card">
+        <h2>Your move</h2>
+        <form id="move-form">
+          <label>Full name
+            <input type="text" name="name" placeholder="e.g. Peter Heeks" autocomplete="name">
+          </label>
+          <label>Old address
+            <textarea name="old_address" rows="3" placeholder="1 Old Street&#10;Oldtown&#10;OL1 2AB"></textarea>
+          </label>
+          <label>New address
+            <textarea name="new_address" rows="3" placeholder="2 New Road&#10;Newville&#10;NE3 4CD"></textarea>
+          </label>
+          <label>Moving date
+            <input type="date" name="move_date">
+          </label>
+          <label>Phone
+            <input type="tel" name="phone" autocomplete="tel">
+          </label>
+          <label>Email
+            <input type="email" name="email" autocomplete="email">
+          </label>
+          <div class="save-row">
+            <button type="submit" class="btn primary">Save details</button>
+            <span id="move-saved" class="saved-flash" hidden>Saved ✓</span>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Progress</h2>
+        <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
+        <p id="progress-label" class="progress-label">0 of 0 done</p>
+        <div id="countdown" class="countdown" hidden></div>
+      </section>
+
+      <section class="card">
+        <h2>Tools</h2>
+        <button id="copy-letter" class="btn">📋 Copy notification letter</button>
+        <button id="export-csv" class="btn">⬇️ Export progress (CSV)</button>
+        <button id="reset" class="btn danger">↺ Reset checklist</button>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div class="toolbar card">
+        <input type="search" id="search" placeholder="Search items…">
+        <select id="status-filter">
+          <option value="all">All statuses</option>
+          <option value="open">Still to do</option>
+          <option value="todo">To do</option>
+          <option value="in_progress">In progress</option>
+          <option value="done">Done</option>
+          <option value="na">Not applicable</option>
+        </select>
+        <button id="show-add" class="btn primary">+ Add item</button>
+      </div>
+
+      <form id="add-form" class="card add-form" hidden>
+        <h3>Add a custom item</h3>
+        <div class="add-grid">
+          <input type="text" name="name" placeholder="Name (e.g. Wine club)" required>
+          <select name="category" id="add-category"></select>
+          <input type="url" name="link" placeholder="Link (optional)">
+          <input type="text" name="hint" placeholder="Note / reminder (optional)">
+        </div>
+        <div class="save-row">
+          <button type="submit" class="btn primary">Add</button>
+          <button type="button" id="cancel-add" class="btn">Cancel</button>
+        </div>
+      </form>
+
+      <div id="checklist"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script>window.MASTER_DATA = {"move": {"name": "", "old_address": "", "new_address": "", "move_date": "", "phone": "", "email": ""}, "items": [{"id": "mail-redirect", "name": "Postal redirection (Royal Mail)", "category": "Mail & post", "when": "As soon as date is known", "hint": "Set up at least 3 weeks before the move. Catches everything you forget on this list — do it first.", "link": "https://www.royalmail.com/personal/receiving-mail/redirection", "status": "todo", "notes": "", "custom": false}, {"id": "electoral-roll", "name": "Electoral roll / voter registration", "category": "Government & official", "when": "After the move", "hint": "Re-register at the new address. Also helps your credit score.", "link": "https://www.gov.uk/register-to-vote", "status": "todo", "notes": "", "custom": false}, {"id": "driving-licence", "name": "Driving licence (DVLA)", "category": "Government & official", "when": "After the move", "hint": "Free to update and legally required. Takes minutes online.", "link": "https://www.gov.uk/change-address-driving-licence", "status": "todo", "notes": "", "custom": false}, {"id": "vehicle-logbook", "name": "Vehicle log book V5C (DVLA)", "category": "Government & official", "when": "After the move", "hint": "Update the V5C for every vehicle you keep. Free online.", "link": "https://www.gov.uk/change-address-log-book", "status": "todo", "notes": "", "custom": false}, {"id": "hmrc", "name": "HMRC (income tax, self assessment)", "category": "Government & official", "when": "After the move", "hint": "One update covers income tax, NI and child benefit records.", "link": "https://www.gov.uk/tell-hmrc-change-of-address", "status": "todo", "notes": "", "custom": false}, {"id": "council-tax-old", "name": "Council tax — close account at old address", "category": "Government & official", "when": "1–2 weeks before", "hint": "Tell the old council your move-out date for a final bill.", "link": "https://www.gov.uk/find-local-council", "status": "todo", "notes": "", "custom": false}, {"id": "council-tax-new", "name": "Council tax — register at new address", "category": "Government & official", "when": "After the move", "hint": "Register with the new council; ask about discounts (single occupancy etc.).", "link": "https://www.gov.uk/find-local-council", "status": "todo", "notes": "", "custom": false}, {"id": "tv-licence", "name": "TV Licence", "category": "Government & official", "when": "1–2 weeks before", "hint": "Move your licence to the new address — it doesn't follow you automatically.", "link": "https://www.tvlicensing.co.uk/check-if-you-need-one/moving-home", "status": "todo", "notes": "", "custom": false}, {"id": "dwp-benefits", "name": "DWP — benefits / state pension", "category": "Government & official", "when": "After the move", "hint": "Universal Credit, state pension, child benefit and any other benefits each need updating.", "link": "https://www.gov.uk/tell-dwp-change-of-circumstances", "status": "todo", "notes": "", "custom": false}, {"id": "parking-permit", "name": "Parking permits", "category": "Government & official", "when": "After the move", "hint": "Cancel the old resident permit and apply for one in the new area if needed.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "current-accounts", "name": "Current / checking accounts", "category": "Banking & finance", "when": "1–2 weeks before", "hint": "Update each bank via its app or online banking — usually under Profile → Personal details.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "savings-accounts", "name": "Savings accounts & ISAs", "category": "Banking & finance", "when": "1–2 weeks before", "hint": "Easy to forget dormant accounts — statements at an old address are a fraud risk.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "credit-cards", "name": "Credit cards", "category": "Banking & finance", "when": "1–2 weeks before", "hint": "Update every issuer, including store cards you rarely use.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "mortgage-landlord", "name": "Mortgage lender / landlord & letting agent", "category": "Banking & finance", "when": "As soon as date is known", "hint": "Give contractual notice if renting; tell your lender your correspondence address if you keep the property.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "loans-finance", "name": "Loans & car finance", "category": "Banking & finance", "when": "1–2 weeks before", "hint": "Personal loans, car finance (PCP/HP) and buy-now-pay-later accounts.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "pensions", "name": "Pension providers", "category": "Banking & finance", "when": "After the move", "hint": "Workplace and private pensions — lost-pension tracing is a pain later, update now.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "investments", "name": "Investment / brokerage accounts", "category": "Banking & finance", "when": "After the move", "hint": "Brokers, robo-advisers, share registrars and crypto exchanges.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "nsandi", "name": "NS&I / Premium Bonds", "category": "Banking & finance", "when": "After the move", "hint": "Prize warrants go to the registered address.", "link": "https://www.nsandi.com/", "status": "todo", "notes": "", "custom": false}, {"id": "paypal-payments", "name": "PayPal & payment apps", "category": "Banking & finance", "when": "After the move", "hint": "PayPal, Wise, Revolut etc. — billing address affects card verification.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "home-insurance", "name": "Home & contents insurance", "category": "Insurance", "when": "As soon as date is known", "hint": "Must reflect the insured address or cover is void. Arrange cover for the new home from exchange/completion day.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "car-insurance", "name": "Car insurance", "category": "Insurance", "when": "As soon as date is known", "hint": "Legally required to update — the premium is recalculated for the new postcode.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "life-insurance", "name": "Life insurance & income protection", "category": "Insurance", "when": "After the move", "hint": "Correspondence address only — quick call or online form.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "health-insurance", "name": "Private health / dental insurance", "category": "Insurance", "when": "After the move", "hint": "May also change your hospital list and premium.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "pet-insurance", "name": "Pet insurance", "category": "Insurance", "when": "After the move", "hint": "Premiums vary by postcode; also update the microchip database.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "breakdown-cover", "name": "Breakdown cover", "category": "Insurance", "when": "After the move", "hint": "AA / RAC / Green Flag — home-start cover uses your address.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "energy", "name": "Electricity & gas", "category": "Utilities & home services", "when": "Moving week", "hint": "Take final meter readings (photograph them) on move-out day; open an account at the new address and read those meters too.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "water", "name": "Water & sewerage", "category": "Utilities & home services", "when": "Moving week", "hint": "Close the old account with a final reading; register at the new address.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "broadband", "name": "Broadband / internet", "category": "Utilities & home services", "when": "As soon as date is known", "hint": "Book the move or new installation early — lead times run 2–4 weeks.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "mobile", "name": "Mobile phone provider", "category": "Utilities & home services", "when": "After the move", "hint": "Billing address update; check signal at the new address before renewing.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "landline-tv", "name": "Landline / TV package", "category": "Utilities & home services", "when": "1–2 weeks before", "hint": "Often bundled with broadband — move or cancel together.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "home-services", "name": "Cleaner / gardener / window cleaner", "category": "Utilities & home services", "when": "1–2 weeks before", "hint": "Cancel or transfer regular household services.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "gp", "name": "GP / doctor", "category": "Health", "when": "After the move", "hint": "Register with a practice near the new address; repeat prescriptions follow your registration.", "link": "https://www.nhs.uk/service-search/find-a-gp", "status": "todo", "notes": "", "custom": false}, {"id": "dentist", "name": "Dentist", "category": "Health", "when": "After the move", "hint": "Find a practice taking new patients — NHS lists fill fast.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "optician", "name": "Optician", "category": "Health", "when": "After the move", "hint": "Transfer your prescription history to a new branch.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "vet-microchip", "name": "Vet & pet microchip database", "category": "Health", "when": "After the move", "hint": "Register with a new vet and update the microchip record — it's the address on the chip that gets pets home.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "pharmacy", "name": "Pharmacy / repeat prescriptions", "category": "Health", "when": "After the move", "hint": "Re-point your nominated pharmacy for electronic prescriptions.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "employer", "name": "Employer HR / payroll", "category": "Work & education", "when": "1–2 weeks before", "hint": "Payslips, P60s and pension correspondence all use this address.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "schools", "name": "Schools / nurseries", "category": "Work & education", "when": "As soon as date is known", "hint": "If changing catchment areas, contact the new council's admissions team as early as possible.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "professional-bodies", "name": "Professional bodies & alumni", "category": "Work & education", "when": "After the move", "hint": "Memberships, licences to practise, university alumni offices.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "amazon-retail", "name": "Amazon & online retail default addresses", "category": "Subscriptions & shopping", "when": "Moving week", "hint": "Change the default delivery address the day you move — mis-delivered parcels rarely come back.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "streaming", "name": "Streaming & app-store billing", "category": "Subscriptions & shopping", "when": "After the move", "hint": "Netflix/Spotify etc., plus Apple ID and Google account billing addresses.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "subscription-boxes", "name": "Subscription boxes & magazines", "category": "Subscriptions & shopping", "when": "1–2 weeks before", "hint": "Meal kits, magazines, coffee clubs — anything that ships on a schedule.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "gym", "name": "Gym membership", "category": "Subscriptions & shopping", "when": "1–2 weeks before", "hint": "Transfer to a nearer branch or give notice — contracts often need 30 days.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "loyalty", "name": "Loyalty schemes & store accounts", "category": "Subscriptions & shopping", "when": "After the move", "hint": "Nectar, Boots, supermarket delivery accounts, airline miles.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "food-delivery", "name": "Food delivery apps", "category": "Subscriptions & shopping", "when": "After the move", "hint": "Deliveroo/Uber Eats/Just Eat saved addresses — before you hungrily order to the old flat.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "friends-family", "name": "Friends & family", "category": "People & other", "when": "After the move", "hint": "Send the new address around — the generated letter below works for this too.", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "charities", "name": "Charities & regular donations", "category": "People & other", "when": "After the move", "hint": "Direct-debit charities and membership organisations (National Trust etc.).", "link": null, "status": "todo", "notes": "", "custom": false}, {"id": "deliveries-neighbour", "name": "Old neighbours / new occupants", "category": "People & other", "when": "Moving week", "hint": "Leave a forwarding note for anything the redirect misses.", "link": null, "status": "todo", "notes": "", "custom": false}], "categories": ["Mail & post", "Government & official", "Banking & finance", "Insurance", "Utilities & home services", "Health", "Work & education", "Subscriptions & shopping", "People & other"]};</script>
+<script>
+/* Address Change Manager — frontend logic. Talks to the JSON API in app.py. */
+
+let state = null;
+
+const $ = (sel) => document.querySelector(sel);
+
+const STATUS_LABELS = {
+  todo: "To do",
+  in_progress: "In progress",
+  done: "Done ✓",
+  na: "N/A",
+};
+
+// ---------------------------------------------------------------- api helpers
+// In the standalone build (build.py inlines everything into standalone.html),
+// window.MASTER_DATA is defined and state persists to localStorage instead of
+// the server. Both modes share all the code below this section.
+const LOCAL_KEY = "address-change-manager-v1";
+
+function saveLocal() {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
+}
+
+function loadLocal() {
+  const master = JSON.parse(JSON.stringify(window.MASTER_DATA));
+  const raw = localStorage.getItem(LOCAL_KEY);
+  if (!raw) return master;
+  let saved;
+  try { saved = JSON.parse(raw); } catch { return master; }
+  // Merge in master items added since this browser's copy was saved.
+  const known = new Set(saved.items.map((i) => i.id));
+  for (const item of master.items) if (!known.has(item.id)) saved.items.push(item);
+  saved.categories = master.categories;
+  return saved;
+}
+
+function localApi(path, method, body) {
+  // Persist on the next tick, after the caller has applied the returned
+  // value to `state` (callers update state synchronously after awaiting).
+  setTimeout(saveLocal, 0);
+
+  if (path === "/api/state" && method === "GET") return loadLocal();
+
+  if (path === "/api/move" && method === "PUT") {
+    for (const key of Object.keys(state.move)) {
+      if (key in body) state.move[key] = String(body[key]);
+    }
+    return { ...state.move };
+  }
+
+  if (path === "/api/reset" && method === "POST") {
+    localStorage.removeItem(LOCAL_KEY);
+    return JSON.parse(JSON.stringify(window.MASTER_DATA));
+  }
+
+  if (path === "/api/items" && method === "POST") {
+    return {
+      id: "custom-" + Math.random().toString(16).slice(2, 10),
+      name: String(body.name || "").trim(),
+      category: state.categories.includes(body.category) ? body.category : "People & other",
+      when: "As soon as date is known",
+      hint: String(body.hint || "").trim(),
+      link: String(body.link || "").trim() || null,
+      status: "todo",
+      notes: "",
+      custom: true,
+    };
+  }
+
+  const m = path.match(/^\/api\/items\/([\w-]+)$/);
+  if (m) {
+    const item = state.items.find((i) => i.id === m[1]);
+    if (!item) throw new Error("unknown item");
+    if (method === "PATCH") {
+      if ("status" in body) item.status = body.status;
+      if ("notes" in body) item.notes = String(body.notes);
+      return { ...item };
+    }
+    if (method === "DELETE") return { deleted: item.id };
+  }
+  throw new Error(`unsupported: ${method} ${path}`);
+}
+
+async function api(path, method = "GET", body = null) {
+  if (window.MASTER_DATA) return localApi(path, method, body);
+  const opts = { method, headers: {} };
+  if (body !== null) {
+    opts.headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(body);
+  }
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `${method} ${path} failed (${res.status})`);
+  }
+  return res.json();
+}
+
+function toast(msg) {
+  const el = $("#toast");
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.hidden = true; }, 2500);
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+// ---------------------------------------------------------------- rendering
+function visibleItems() {
+  const q = $("#search").value.trim().toLowerCase();
+  const filter = $("#status-filter").value;
+  return state.items.filter((item) => {
+    if (filter === "open" && (item.status === "done" || item.status === "na")) return false;
+    if (filter !== "all" && filter !== "open" && item.status !== filter) return false;
+    if (q && !(item.name + " " + (item.hint || "")).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderProgress() {
+  const relevant = state.items.filter((i) => i.status !== "na");
+  const done = relevant.filter((i) => i.status === "done").length;
+  const pct = relevant.length ? Math.round((done / relevant.length) * 100) : 0;
+  $("#progress-bar").style.width = pct + "%";
+  $("#progress-label").textContent = `${done} of ${relevant.length} done (${pct}%)`;
+
+  const cd = $("#countdown");
+  if (state.move.move_date) {
+    const days = Math.ceil((new Date(state.move.move_date) - new Date()) / 86400000);
+    cd.hidden = false;
+    if (days > 1) cd.textContent = `🗓️ ${days} days until moving day`;
+    else if (days === 1) cd.textContent = "🗓️ Moving day is tomorrow!";
+    else if (days === 0) cd.textContent = "🚚 Moving day is today!";
+    else cd.textContent = `✅ Moved ${-days} day${days === -1 ? "" : "s"} ago`;
+  } else {
+    cd.hidden = true;
+  }
+}
+
+function itemCard(item) {
+  const div = document.createElement("div");
+  div.className = `item ${item.status}`;
+  div.dataset.id = item.id;
+
+  const main = document.createElement("div");
+  main.className = "item-main";
+
+  const title = document.createElement("div");
+  title.className = "item-title";
+  title.textContent = item.name;
+  if (item.link) {
+    const a = document.createElement("a");
+    a.href = item.link;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "Open site ↗";
+    title.appendChild(a);
+  }
+  const when = document.createElement("span");
+  when.className = "badge";
+  when.textContent = item.when;
+  title.appendChild(when);
+  if (item.custom) {
+    const c = document.createElement("span");
+    c.className = "badge custom";
+    c.textContent = "custom";
+    title.appendChild(c);
+  }
+  main.appendChild(title);
+
+  if (item.hint) {
+    const hint = document.createElement("p");
+    hint.className = "item-hint";
+    hint.textContent = item.hint;
+    main.appendChild(hint);
+  }
+  div.appendChild(main);
+
+  const side = document.createElement("div");
+  side.className = "item-side";
+
+  const sel = document.createElement("select");
+  sel.className = `status-select ${item.status}`;
+  for (const [value, label] of Object.entries(STATUS_LABELS)) {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = label;
+    opt.selected = value === item.status;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener("change", async () => {
+    const updated = await api(`/api/items/${item.id}`, "PATCH", { status: sel.value });
+    Object.assign(item, updated);
+    render();
+  });
+  side.appendChild(sel);
+
+  const actions = document.createElement("div");
+  actions.className = "item-actions";
+
+  const notesBtn = document.createElement("button");
+  notesBtn.className = "mini-btn";
+  notesBtn.textContent = item.notes ? "Notes •" : "Notes";
+  notesBtn.addEventListener("click", () => {
+    const wrap = div.querySelector(".item-notes");
+    wrap.hidden = !wrap.hidden;
+    if (!wrap.hidden) wrap.querySelector("textarea").focus();
+  });
+  actions.appendChild(notesBtn);
+
+  if (item.custom) {
+    const del = document.createElement("button");
+    del.className = "mini-btn";
+    del.textContent = "Delete";
+    del.addEventListener("click", async () => {
+      if (!confirm(`Delete "${item.name}"?`)) return;
+      await api(`/api/items/${item.id}`, "DELETE");
+      state.items = state.items.filter((i) => i.id !== item.id);
+      render();
+    });
+    actions.appendChild(del);
+  }
+  side.appendChild(actions);
+  div.appendChild(side);
+
+  const notesWrap = document.createElement("div");
+  notesWrap.className = "item-notes";
+  notesWrap.hidden = !item.notes;
+  const ta = document.createElement("textarea");
+  ta.rows = 2;
+  ta.placeholder = "Account numbers, who you spoke to, reference numbers…";
+  ta.value = item.notes || "";
+  ta.addEventListener("input", debounce(async () => {
+    item.notes = ta.value;
+    await api(`/api/items/${item.id}`, "PATCH", { notes: ta.value });
+    notesBtn.textContent = ta.value ? "Notes •" : "Notes";
+  }, 500));
+  notesWrap.appendChild(ta);
+  div.appendChild(notesWrap);
+
+  return div;
+}
+
+function render() {
+  const root = $("#checklist");
+  root.innerHTML = "";
+  const items = visibleItems();
+
+  for (const category of state.categories) {
+    const inCat = items.filter((i) => i.category === category);
+    if (!inCat.length) continue;
+
+    const all = state.items.filter((i) => i.category === category && i.status !== "na");
+    const done = all.filter((i) => i.status === "done").length;
+
+    const section = document.createElement("div");
+    section.className = "category";
+    const header = document.createElement("div");
+    header.className = "category-header";
+    header.innerHTML = `<h2>${category}</h2><span class="category-count">${done}/${all.length} done</span>`;
+    section.appendChild(header);
+    for (const item of inCat) section.appendChild(itemCard(item));
+    root.appendChild(section);
+  }
+
+  if (!items.length) {
+    root.innerHTML = '<p class="empty">Nothing matches — adjust the search or filter.</p>';
+  }
+  renderProgress();
+}
+
+// ---------------------------------------------------------------- move form
+function fillMoveForm() {
+  const form = $("#move-form");
+  for (const [key, value] of Object.entries(state.move)) {
+    if (form.elements[key]) form.elements[key].value = value;
+  }
+}
+
+$("#move-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const move = {};
+  for (const key of Object.keys(state.move)) move[key] = form.elements[key].value;
+  state.move = await api("/api/move", "PUT", move);
+  const flash = $("#move-saved");
+  flash.hidden = false;
+  setTimeout(() => { flash.hidden = true; }, 2000);
+  renderProgress();
+});
+
+// ---------------------------------------------------------------- tools
+function buildLetter() {
+  const m = state.move;
+  const date = m.move_date
+    ? new Date(m.move_date).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })
+    : "[moving date]";
+  return `Dear Sir or Madam,
+
+Re: Change of address — ${m.name || "[your name]"}
+
+I am writing to notify you that I am moving home and would like the address you hold on file for me updated.
+
+Current address on file:
+${m.old_address || "[old address]"}
+
+New address (effective ${date}):
+${m.new_address || "[new address]"}
+
+Please update your records and send all future correspondence to the new address. Should you need to contact me, I can be reached${m.phone ? ` on ${m.phone}` : ""}${m.phone && m.email ? " or" : ""}${m.email ? ` at ${m.email}` : ""}.
+
+Thank you for your assistance.
+
+Yours faithfully,
+${m.name || "[your name]"}`;
+}
+
+$("#copy-letter").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(buildLetter());
+    toast("Notification letter copied to clipboard");
+  } catch {
+    // Clipboard API can be unavailable over plain http — fall back to a prompt.
+    window.prompt("Copy the letter below:", buildLetter());
+  }
+});
+
+$("#export-csv").addEventListener("click", () => {
+  const esc = (s) => `"${String(s || "").replace(/"/g, '""')}"`;
+  const rows = [["Category", "Item", "When", "Status", "Notes", "Link"]];
+  for (const item of state.items) {
+    rows.push([item.category, item.name, item.when, STATUS_LABELS[item.status], item.notes, item.link || ""]);
+  }
+  const csv = rows.map((r) => r.map(esc).join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = "address-change-progress.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+$("#reset").addEventListener("click", async () => {
+  if (!confirm("Reset everything? All statuses, notes and custom items will be cleared.")) return;
+  state = await api("/api/reset", "POST");
+  fillMoveForm();
+  render();
+  toast("Checklist reset");
+});
+
+// ---------------------------------------------------------------- add item
+$("#show-add").addEventListener("click", () => {
+  $("#add-form").hidden = false;
+  $("#add-form").elements.name.focus();
+});
+$("#cancel-add").addEventListener("click", () => { $("#add-form").hidden = true; });
+
+$("#add-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const item = await api("/api/items", "POST", {
+    name: form.elements.name.value,
+    category: form.elements.category.value,
+    link: form.elements.link.value,
+    hint: form.elements.hint.value,
+  });
+  state.items.push(item);
+  form.reset();
+  form.hidden = true;
+  render();
+  toast(`Added "${item.name}"`);
+});
+
+// ---------------------------------------------------------------- boot
+$("#search").addEventListener("input", debounce(render, 150));
+$("#status-filter").addEventListener("change", render);
+
+(async function boot() {
+  state = await api("/api/state");
+  const catSel = $("#add-category");
+  for (const c of state.categories) {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    catSel.appendChild(opt);
+  }
+  fillMoveForm();
+  render();
+})();
+</script>
+</body>
+</html>

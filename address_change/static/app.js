@@ -12,7 +12,77 @@ const STATUS_LABELS = {
 };
 
 // ---------------------------------------------------------------- api helpers
+// In the standalone build (build.py inlines everything into standalone.html),
+// window.MASTER_DATA is defined and state persists to localStorage instead of
+// the server. Both modes share all the code below this section.
+const LOCAL_KEY = "address-change-manager-v1";
+
+function saveLocal() {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
+}
+
+function loadLocal() {
+  const master = JSON.parse(JSON.stringify(window.MASTER_DATA));
+  const raw = localStorage.getItem(LOCAL_KEY);
+  if (!raw) return master;
+  let saved;
+  try { saved = JSON.parse(raw); } catch { return master; }
+  // Merge in master items added since this browser's copy was saved.
+  const known = new Set(saved.items.map((i) => i.id));
+  for (const item of master.items) if (!known.has(item.id)) saved.items.push(item);
+  saved.categories = master.categories;
+  return saved;
+}
+
+function localApi(path, method, body) {
+  // Persist on the next tick, after the caller has applied the returned
+  // value to `state` (callers update state synchronously after awaiting).
+  setTimeout(saveLocal, 0);
+
+  if (path === "/api/state" && method === "GET") return loadLocal();
+
+  if (path === "/api/move" && method === "PUT") {
+    for (const key of Object.keys(state.move)) {
+      if (key in body) state.move[key] = String(body[key]);
+    }
+    return { ...state.move };
+  }
+
+  if (path === "/api/reset" && method === "POST") {
+    localStorage.removeItem(LOCAL_KEY);
+    return JSON.parse(JSON.stringify(window.MASTER_DATA));
+  }
+
+  if (path === "/api/items" && method === "POST") {
+    return {
+      id: "custom-" + Math.random().toString(16).slice(2, 10),
+      name: String(body.name || "").trim(),
+      category: state.categories.includes(body.category) ? body.category : "People & other",
+      when: "As soon as date is known",
+      hint: String(body.hint || "").trim(),
+      link: String(body.link || "").trim() || null,
+      status: "todo",
+      notes: "",
+      custom: true,
+    };
+  }
+
+  const m = path.match(/^\/api\/items\/([\w-]+)$/);
+  if (m) {
+    const item = state.items.find((i) => i.id === m[1]);
+    if (!item) throw new Error("unknown item");
+    if (method === "PATCH") {
+      if ("status" in body) item.status = body.status;
+      if ("notes" in body) item.notes = String(body.notes);
+      return { ...item };
+    }
+    if (method === "DELETE") return { deleted: item.id };
+  }
+  throw new Error(`unsupported: ${method} ${path}`);
+}
+
 async function api(path, method = "GET", body = null) {
+  if (window.MASTER_DATA) return localApi(path, method, body);
   const opts = { method, headers: {} };
   if (body !== null) {
     opts.headers["Content-Type"] = "application/json";

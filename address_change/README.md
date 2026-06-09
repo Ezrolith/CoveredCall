@@ -18,9 +18,17 @@ subscriptions and more — in one checklist.
 >   paste into any web form, email or post
 > - progress bar, moving-day countdown, search/filter, custom items, CSV export
 
-## Run it
+## Three ways to use it
 
-No dependencies beyond Python 3.9+ — stdlib only:
+**1. No server at all — open [`standalone.html`](standalone.html) in any
+browser.** The whole app in a single file; your progress is saved in that
+browser's localStorage. This is the easiest option: download the file and
+double-click it.
+
+**2. Just read the list — [`CHECKLIST.md`](CHECKLIST.md).** A plain,
+printable Markdown version of the full checklist with timing and links.
+
+**3. Run the server** (no dependencies beyond Python 3.9+ — stdlib only):
 
 ```bash
 python address_change/app.py          # http://localhost:8000
@@ -30,6 +38,10 @@ python address_change/app.py --port 9000
 Open the printed URL in a browser. Your data persists to
 `address_change/data.json` (gitignored — it contains your addresses, keep it
 private).
+
+`standalone.html` and `CHECKLIST.md` are generated — after editing
+`checklist.py` or anything in `static/`, regenerate them with
+`python address_change/build.py`.
 
 ## How to use it
 
