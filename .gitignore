@@ -8,3 +8,7 @@ output/
 .venv/
 venv/
 .DS_Store
+
+# Address Change Manager — personal data (addresses, notes)
+address_change/data.json
+address_change/data.json.tmp

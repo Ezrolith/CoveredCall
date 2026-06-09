@@ -1,5 +1,10 @@
 # Covered Call Fund Simulator
 
+> **Also in this repo:** [`address_change/`](address_change/README.md) — a
+> zero-dependency web app that tracks everything you need to update when
+> moving home (banks, government, utilities, subscriptions, …).
+> Run it with `python address_change/app.py`.
+
 A Monte Carlo engine that simulates how a **covered call (buy-write)** strategy
 behaves versus simply **holding the underlying**, across realistic market
 regimes (trending bull, bear, flat/choppy, and a blended full cycle).

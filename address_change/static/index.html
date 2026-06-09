@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Address Change Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>🏠 Address Change Manager</h1>
+      <p class="tagline">Everything to update when you move — tracked in one place.</p>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <section class="card">
+        <h2>Your move</h2>
+        <form id="move-form">
+          <label>Full name
+            <input type="text" name="name" placeholder="e.g. Peter Heeks" autocomplete="name">
+          </label>
+          <label>Old address
+            <textarea name="old_address" rows="3" placeholder="1 Old Street&#10;Oldtown&#10;OL1 2AB"></textarea>
+          </label>
+          <label>New address
+            <textarea name="new_address" rows="3" placeholder="2 New Road&#10;Newville&#10;NE3 4CD"></textarea>
+          </label>
+          <label>Moving date
+            <input type="date" name="move_date">
+          </label>
+          <label>Phone
+            <input type="tel" name="phone" autocomplete="tel">
+          </label>
+          <label>Email
+            <input type="email" name="email" autocomplete="email">
+          </label>
+          <div class="save-row">
+            <button type="submit" class="btn primary">Save details</button>
+            <span id="move-saved" class="saved-flash" hidden>Saved ✓</span>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Progress</h2>
+        <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
+        <p id="progress-label" class="progress-label">0 of 0 done</p>
+        <div id="countdown" class="countdown" hidden></div>
+      </section>
+
+      <section class="card">
+        <h2>Tools</h2>
+        <button id="copy-letter" class="btn">📋 Copy notification letter</button>
+        <button id="export-csv" class="btn">⬇️ Export progress (CSV)</button>
+        <button id="reset" class="btn danger">↺ Reset checklist</button>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div class="toolbar card">
+        <input type="search" id="search" placeholder="Search items…">
+        <select id="status-filter">
+          <option value="all">All statuses</option>
+          <option value="open">Still to do</option>
+          <option value="todo">To do</option>
+          <option value="in_progress">In progress</option>
+          <option value="done">Done</option>
+          <option value="na">Not applicable</option>
+        </select>
+        <button id="show-add" class="btn primary">+ Add item</button>
+      </div>
+
+      <form id="add-form" class="card add-form" hidden>
+        <h3>Add a custom item</h3>
+        <div class="add-grid">
+          <input type="text" name="name" placeholder="Name (e.g. Wine club)" required>
+          <select name="category" id="add-category"></select>
+          <input type="url" name="link" placeholder="Link (optional)">
+          <input type="text" name="hint" placeholder="Note / reminder (optional)">
+        </div>
+        <div class="save-row">
+          <button type="submit" class="btn primary">Add</button>
+          <button type="button" id="cancel-add" class="btn">Cancel</button>
+        </div>
+      </form>
+
+      <div id="checklist"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
